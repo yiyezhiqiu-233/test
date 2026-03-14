@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>产设1吴煜城个人自我介绍</title>
+    <style>
+        /* 保留原有所有样式，此处省略（与原代码一致） */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='%23ff0000' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z'/></svg>"), auto;
+        }
+
+        body {
+            background-color: #0a0a0a;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 56.25vw;
+            max-width: 1920px;
+            max-height: 1080px;
+            margin: 0 auto;
+            z-index: 2;
+        }
+
+        #line-canvas {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 8;
+        }
+
+        /* 色块通用样式 */
+        .box {
+            position: absolute;
+            background-color: #2A2A2A;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0.95;
+            border-radius: 2px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            border: 1px solid #333;
+            z-index: 9;
+            color: #fff;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: left;
+            font-size: 38px;
+        }
+        
+
+        .box.hidden { opacity: 0; pointer-events: none; transform: scale(0.8); }
+        .box.visible { opacity: 0.95; pointer-events: auto; transform: scale(1); }
+        .box.unselected { opacity: 0.1 !important; filter: grayscale(100%) blur(2px); transform: scale(0.95); }
+        .box.selected { opacity: 1 !important; z-index: 20 !important; border-color: #ff4444; transform: scale(1.1); }
+
+        /* 中心头像色块 */
+        .white-box {
+            background-color: #1B263B;
+            border-radius: 50%;
+            aspect-ratio: 1/1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+        .box6 { width: 25%; left: 37.5%; top: 35%; z-index: 10; height: auto; transition: transform 0.6s; }
+        .cat-image-container { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255,255,255,0.1); }
+        .cat-image { width: 100%; height: 100%; object-fit: cover; }
+
+        /* 核心修改：个人信息大字面板 */
+        #info-panel {
+            position: absolute;
+            left: 65%; /* 位于头像右侧 */
+            top: 35%;
+            z-index: 100;
+            pointer-events: none;
+            color: #ff4444;
+            font-weight: bold;
+            line-height: 1.8;
+            display: none;
+        }
+
+        .info-line {
+            font-size: 33px;
+            letter-spacing: 2px;
+            white-space: nowrap;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+            min-height: 1.2em;
+        }
+
+        /* MBIT文本展示面板样式 */
+        #mbit-panel {
+            position: absolute;
+            left: 25%; /* 我的MBIT色块右侧位置 */
+            bottom: 5%;
+            z-index: 100;
+            pointer-events: none;
+            color: #ff4444;
+            font-weight: bold;
+            line-height: 1;
+            display: none;
+            animation: pulse-scale 1s infinite alternate; /* 放大缩小强调动画 */
+        }
+
+        .info-line-mbit {
+            font-size: 21px;
+            letter-spacing: 0;
+            white-space: nowrap;
+            margin-bottom: 0;
+            text-shadow: 0 0 5px rgba(255, 68, 68, 0.5);
+            min-height: 1em;
+            opacity: 0; /* 初始隐藏，用于逐行显示 */
+            transition: opacity 0.2s ease; /* 平滑显示 */
+        }
+
+        /* 新增：INFP调停者文本样式（更大、靠右） */
+        .info-line-mbit.infp-text {
+            font-size: 33px; /* 比原来12px大，可根据需要调整 */
+            text-align: left; /* 靠左对齐 */
+            margin-right: 30px; /* 可选：增加右侧间距，调整位置 */
+            letter-spacing: 1px; /* 轻微增加字间距，更醒目 */
+        }
+
+        /* 缩放强调动画 */
+        @keyframes pulse-scale {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        /* 新增：我的爱好文本面板样式 */
+        #hobby-panel {
+            position: absolute;
+            left: 35%; /* 我的爱好色块右侧位置 */
+            top: 15%;
+            z-index: 100;
+            pointer-events: none;
+            color: #ff4444;
+            font-weight: bold;
+            line-height: 1.8;
+            display: none;
+        }
+
+        .info-line-hobby {
+            font-size: 24px;
+            letter-spacing: 2px;
+            white-space: nowrap;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+            min-height: 1.2em;
+        }
+
+         /* 其他文本展示面板样式 */
+        #other-panel {
+            position: absolute;
+            left: 55%; /* 调整：从25%→35%，避免遮挡 */
+            bottom: 62%; /* 调整：从5%→15%，避免遮挡 */
+            z-index: 100;
+            pointer-events: none;
+            color: #ff4444;
+            font-weight: bold;
+            line-height: 1.5; /* 调整行高，更易读 */
+            display: none;
+        }
+
+        .info-line-other {
+            font-size: 33px;
+            letter-spacing: 0;
+            white-space: nowrap;
+            margin-bottom: 8px;
+            text-shadow: 0 0 5px rgba(255, 68, 68, 0.5);
+            min-height: 1em;
+            opacity: 0; /* 初始隐藏，用于逐行显示 */
+            transition: opacity 0.2s ease; /* 平滑显示 */
+        }
+
+        
+         /* 联系文本展示面板样式 */
+        #call-panel {
+            position: absolute;
+            left: 65%; /* 调整：从25%→35%，避免遮挡 */
+            bottom: 66%; /* 调整：从5%→15%，避免遮挡 */
+            z-index: 100;
+            pointer-events: none;
+            color: #ff4444;
+            font-weight: bold;
+            line-height: 1.5;
+            display: none;
+        }
+
+        .info-line-call {
+            font-size: 44px; /* 放大字体，更醒目 */
+            letter-spacing: 2px;
+            white-space: nowrap;
+            margin-bottom: 0;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+            min-height: 1em;
+            opacity: 0; /* 初始隐藏，用于逐行显示 */
+            transition: opacity 0.2s ease; /* 平滑显示 */
+        }
+
+        
+        /* 新增：我的电影文本面板样式 */
+        #movie-panel {
+            position: absolute;
+            left: 45%; /* 调整：从35%→45%，避免遮挡 */
+            top: 20%; /* 调整：从15%→20%，避免遮挡 */
+            z-index: 100;
+            pointer-events: none;
+            color: #ff4444;
+            font-weight: bold;
+            line-height: 1.8;
+            display: none;
+        }
+
+        .info-line-movie {
+            font-size: 24px;
+            letter-spacing: 2px;
+            white-space: nowrap;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+            min-height: 1.2em;
+        }
+
+        /* 新增：我的音乐文本面板样式 */
+        #music-panel {
+            position: absolute;
+            left: 35%; /* 调整：从25%→35%，避免遮挡 */
+            bottom: 15%; /* 调整：从5%→15%，避免遮挡 */
+            z-index: 100;
+            pointer-events: none;
+            color: #ff4444;
+            font-weight: bold;
+            line-height: 1;
+            display: none;
+        }
+
+        .info-line-music {
+            font-size:21px;
+            letter-spacing: 0;
+            white-space: nowrap;
+            margin-bottom: 0;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+            min-height: 1em;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        
+        /* 坐标位置保持不变 */
+        .box1 { width: 22%; height: 45%; left: 2%; top: 5%; }
+        .box2 { width: 15%; height: 18%; left: 7%; bottom: 5%; }
+        .box3 { width: 8%; height: 12%; left: 45%; top: 8%; }
+        .box4 { width: 15%; height: 20%; right: 20%; top: 5%; }
+        .box5 { width: 20%; height: 65%; right: 2%; top: 28%; }
+        .box10 { width: 16%; height: 13%; right: 5%; bottom: 85%; }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.2); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+        }
+
+                @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.2); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+        }
+
+        /* 新增：底部呼吸文字样式 */
+        .breath-text {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ff4444;
+            font-size: 20px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+            z-index: 9999;
+            pointer-events: none;
+            animation: breath 2s infinite ease-in-out;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .breath-text2 {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #a69e9e;
+            font-size: 15px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(249, 179, 179, 0.5);
+            z-index: 9999;
+            pointer-events: none;
+            
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        @keyframes breath {
+            0% {
+                opacity: 0.6;
+                transform: translateX(-50%) scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: translateX(-50%) scale(1.05);
+            }
+            100% {
+                opacity: 0.6;
+                transform: translateX(-50%) scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="container">
+        <canvas id="line-canvas"></canvas>
+        
+        <div id="info-panel">
+            <div class="info-line" data-text="姓名：吴煜城 "></div>
+            <div class="info-line" data-text="产品设计1班 "></div>
+            <div class="info-line" data-text="出生年月：2007.03"></div>
+            <div class="info-line" data-text="来自于：中国，广东，汕头 "></div>
+        </div>
+
+        <div id="hobby-panel">
+            <div class="info-line-hobby" data-text="圈子：只混生物圈"></div>
+            <div class="info-line-hobby" data-text="状态：不打游戏，不追番剧"></div>
+            <div class="info-line-hobby" data-text="偶尔看点电影"></div>
+            <div class="info-line-hobby" data-text="喜欢哈基米"></div>
+        </div>
+
+        <div id="mbit-panel">
+            <div class="info-line-mbit infp-text" data-text="INFP调停者"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⡄⠀⠀⠀⠀⠀⣤⣴⣾⣿⣿⣿⣧⢀⣀⣠⣄⠀⠀⠀⢀⡀⠀⣷⡄⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢚⣿⡷⣿⠏⠀⠀⣸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣟⡃⠀⠀⠀⠀⢻⡟⣿⠍⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠃⠁⠀⠀⣠⣿⣿⣿⣿⣿⢹⣿⣿⣿⢿⣿⡇⠀⠀⠀⠀⠀⠀⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣼⣿⣿⡿⡎⠛⠧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣄⣤⣹⣧⣤⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣯⡯⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⣿⣿⣿⣿⡿⢻⣿⣿⡿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠀⢀⡄⠀⠀⠀⠀⠀⠻⢿⣿⣿⣿⣿⣿⠀⢸⣿⣿⡁⠀⠀⠀⠀⠀⠠⣴⡆⢠⣶⠄⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡷⣾⢿⠀⠀⠀⠀⠀⠀⠀⣼⣿⣿⣿⡏⠀⢸⣿⣿⣷⡀⠀⠀⠀⡿⠶⢾⣷⡯⢥⣶⡆⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠐⠋⠃⠀⠀⠀⠀⠀⠀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⢐⣿⣿⣿⡍⢳⡦⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⣿⡟⠋⢻⣿⣿⣿⣿⣿⣿⣀⣤⣤⣶⣾⠟⠉⠉⢹⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⠁⠀⠀⢻⣿⣿⣿⣿⣿⣿⣿⡿⠋⠁⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣦⣀⣸⠏⠀⠀⣠⣿⣿⣿⣿⣿⣿⡿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠁⠀⠀⢀⣼⣿⣿⣿⣿⣿⣿⣿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⣿⣿⣿⣿⣿⣿⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⢤⣤⣴⣶⣶⣿⣿⣿⣿⣿⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠙⢿⣿⣿⣿⣿⣿⣿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⡄⠀⠀⠀⠙⢿⣿⣿⣿⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣿⣿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠰⠋⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-mbit" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+        </div>
+
+        <div id="music-panel">
+            <div class="info-line-music" data-text="丶听的最多："></div>
+            <div class="info-line-music" data-text="陈奕迅"></div>
+            <div class="info-line-music" data-text="王菲"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣠⣤⣄⣀⣀⣄⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡠⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠠⣾⣿⣿⣿⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⣿⣿⣿⣿⣿⣿⡿⠋⠙⠛⢿⣿⣿⣿⣿⣿⣿⣿⣧⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⣿⣿⣯⢻⣻⡟⠃⠀⠀⠀⠀⠀⠀⠀⠉⣿⣿⣿⣿⣿⣿⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿⣿⣿⣿⣿⣿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣿⣿⣿⣿⣿⣿⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⣿⣿⣿⣿⣿⡏⢀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⣿⣿⣿⣿⣿⣯⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿⣿⣿⣿⣿⠋⠈⣀⡄⠑⠂⠀⠀⠀⠈⢀⡄⢸⣿⣿⣿⣿⣯⣿⣿⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣾⣿⣿⣿⣿⣿⣿⣿⠀⠀⣿⡃⠀⠀⠀⠀⠀⠀⣸⣏⢸⡿⣿⣿⣿⣿⣿⣯⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⣀⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⣯⠀⠀⣿⠀⠀⠀⠀⠀⠀⠀⢸⡗⢺⣿⣿⣿⣿⣿⣿⣿⣿⠆⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⢐⣗⣿⣿⣿⣿⣿⣿⣿⣿⣟⠄⠀⠉⠀⠀⠀⠀⠀⠀⠀⠘⠃⠀⢸⣿⣿⣿⣿⣿⣿⣳⣄⠄⠠⠤⠤⠄⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠒⠐⠒⠂⠈⠉⢪⣿⣿⣿⣿⣿⣿⣿⣿⣧⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿⣿⣿⣿⣿⣿⣿⣿⠗⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⢀⡠⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⡄⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⣿⣿⣿⣿⣿⣿⡿⠀⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠠⢹⣿⣿⣿⣿⣿⣿⣿⠿⣿⣿⣿⠢⠤⠄⠠⠄⠀⠀⠀⣿⣿⣿⣿⣿⡿⡏⠁⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠠⠋⣿⣿⣿⠳⡋⠱⢤⣈⠚⠛⡦⢤⣤⣄⣀⣠⣴⠤⠿⢟⢛⣶⣿⠛⠿⡅⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⠒⠙⡝⠀⠻⣄⣀⡀⠙⢦⣶⣤⣿⣯⣀⣀⣄⠤⢒⣹⣿⡟⠃⠀⢰⢝⠀⠉⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠊⠀⠀⠀⠀⠀⠀⠤⣘⡙⠓⠤⠤⣤⣠⣼⠿⢒⣀⣴⣿⠟⠋⠀⠀⠀⢘⡾⠀⠀⠀⢰⡆⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⡇⠀⠀⠀⡆⠀⠀⠀⠀⠛⢷⣶⣿⣹⣶⣴⣿⣿⣿⡟⠁⡀⠀⠀⠀⠀⢼⡇⠀⠀⠀⣠⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢳⠀⠀⠀⠁⠀⠀⠀⠀⠀⠀⠈⠉⣛⣯⣿⠿⠟⠇⠀⠀⠀⠀⠀⠀⢀⣝⠇⠀⠀⠀⢽⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⠀⠘⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣧⡟⠀⠀⠀⠀⡈⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡀⠀⠑⢾⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢘⣆⠀⠀⠀⠠⠁⠀⠀⠀⠀⠀⠀⠀"></div>
+            <div class="info-line-music" data-text="⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣇⠀⠀⢸⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⡟⠀⠀⠀⢀⠀⠀⠀⠀⠀⠀⠀⠀"></div>
+        </div>
+
+        <div id="movie-panel">
+            <div class="info-line-movie" data-text="啥都看一点"></div>
+            <div class="info-line-movie" data-text="徐克，胡金铨"></div>
+        </div>
+
+        <div id="other-panel">
+            <div class="info-line-other" data-text="吃辣会死星人"></div>
+            <div class="info-line-other" data-text="爱发表情包星人"></div>
+            <div class="info-line-other" data-text="老吃家"></div>
+        </div>
+
+        <div id="call-panel">
+            <div class="info-line-call" data-text="15914757832"></div>
+            <div class="info-line-call" data-text="3270935568@qq.com"></div>
+        </div>
+
+        <div class="box box1 hidden"><div class="box-content"><div class="box-index">01</div><div class="box-title" data-text="我的爱好">MY_HOBBIES</div><div class="box-desc" data-text=""></div></div></div>
+        <div class="box box2 hidden"><div class="box-content"><div class="box-index">02</div><div class="box-title" data-text="我的MBIT">MY_MBIT</div></div></div>
+        <div class="box box3 hidden"><div class="box-content"><div class="box-index">03</div><div class="box-title" data-text="电影">WARNING</div></div></div>
+        <div class="box box4 hidden"><div class="box-content"><div class="box-index">04</div><div class="box-title" data-text="其他">GLOBAL_ACCESS</div></div></div>
+        <div class="box box5 hidden"><div class="box-content"><div class="box-index">05</div><div class="box-title" data-text="音乐">MUSIC</div></div></div>
+        <div class="box box10 hidden"><div class="box-content"><div class="box-index">06</div><div class="box-title" data-text="联系方式">LOGS</div></div></div>
+        
+        <div class="box white-box box6">
+            <div class="cat-image-container">
+                <img src="https://p11-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/4545c5a7afeb4f0db8b5dcd7491f1653.png~tplv-a9rns2rl98-24:720:720.png?lk3s=8e244e95&rcl=20260313171142066EAAC4CE9F8E83A3C3&rrcfp=8a172a1a&x-expires=1773997903&x-signature=mxbu9FjYvkkP2sSCP03i2WolQf0%3D" class="cat-image">
+            </div>
+        </div>
+
+                </div> <!-- 闭合 .container -->
+
+        <!-- 新增：底部呼吸提示文字 -->
+        <div class="breath-text">试着让鼠标停在某个位置。</div>
+        <div class="breath-text2">由豆包和gemini联合制作（光标悬停头像可看到信息，共六个隐藏面板）</div>
+
+    </div>
+
+    <script>
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        const infoPanel = document.getElementById('info-panel');
+        const infoLines = document.querySelectorAll('.info-line');
+        // 获取我的爱好面板和文本行
+        const hobbyPanel = document.getElementById('hobby-panel');
+        const hobbyLines = document.querySelectorAll('.info-line-hobby');
+        // 获取MBIT面板和文本行
+        const mbitPanel = document.getElementById('mbit-panel');
+        const mbitLines = document.querySelectorAll('.info-line-mbit');
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&?<>{}[]';
+        let mouse = { x: -1000, y: -1000 };
+
+        // 获取我的电影面板和文本行
+        const moviePanel = document.getElementById('movie-panel');
+        const movieLines = document.querySelectorAll('.info-line-movie');
+
+        // 获取我的音乐面板和文本行
+        const musicPanel = document.getElementById('music-panel');
+        const musicLines = document.querySelectorAll('.info-line-music');
+
+        // 获取我的其他面板和文本行
+        const otherPanel = document.getElementById('other-panel');
+        const otherLines = document.querySelectorAll('.info-line-other');
+
+        // 获取我的联系面板和文本行
+        const callPanel = document.getElementById('call-panel');
+        const callLines = document.querySelectorAll('.info-line-call');
+
+        // ========== 新增：连线相关变量 ==========
+        const lineCanvas = document.getElementById('line-canvas');
+        const lineCtx = lineCanvas.getContext('2d');
+        // 定义面板顺序：02 → 01 → 03 → 05 → 04 → 06（box10）
+        const panelOrder = ['box2', 'box1', 'box3', 'box5', 'box4', 'box10'];
+        let currentConnectFrom = null; // 当前连线的起点
+        let currentConnectTo = null;   // 当前连线的终点
+        let drawnLines = []; // 新增：记录已绘制的连线，用于保持显示
+        let lineOpacity = 0.8; // 新增：控制连线透明度，默认正常
+
+        // ========== 新增：初始化连线Canvas尺寸 ==========
+        function initLineCanvas() {
+            const container = document.querySelector('.container');
+            lineCanvas.width = container.offsetWidth;
+            lineCanvas.height = container.offsetHeight;
+        }
+
+        // ========== 新增：设置所有连线透明度 ==========
+        function setLineOpacity(opacity) {
+            lineOpacity = opacity;
+            // 重绘所有连线以应用新的透明度
+            lineCtx.clearRect(0, 0, lineCanvas.width, lineCanvas.height);
+            drawnLines.forEach(line => {
+                drawLine(line.from, line.to, false, true);
+            });
+            // 重绘当前引导线
+            if (currentConnectFrom && currentConnectTo) {
+                drawLine(currentConnectFrom, currentConnectTo, currentConnectFrom === box6);
+            }
+        }
+
+        // ========== 修改：绘制淡红色连线（支持透明度控制） ==========
+        function drawLine(fromEl, toEl, isFaint = false, isHistory = false) {
+            // 仅在绘制新连线（非历史）时清空画布
+            if (!isHistory) {
+                lineCtx.clearRect(0, 0, lineCanvas.width, lineCanvas.height);
+                
+                // 先绘制所有历史连线
+                drawnLines.forEach(line => {
+                    drawLine(line.from, line.to, false, true);
+                });
+            }
+            
+            if (!fromEl || !toEl) return;
+
+            // 获取元素中心坐标
+            const fromRect = fromEl.getBoundingClientRect();
+            const toRect = toEl.getBoundingClientRect();
+            const containerRect = document.querySelector('.container').getBoundingClientRect();
+            
+            const fromX = fromRect.left + fromRect.width/2 - containerRect.left;
+            const fromY = fromRect.top + fromRect.height/2 - containerRect.top;
+            const toX = toRect.left + toRect.width/2 - containerRect.left;
+            const toY = toRect.top + toRect.height/2 - containerRect.top;
+
+            // 绘制连线（使用全局透明度控制）
+            lineCtx.beginPath();
+            lineCtx.moveTo(fromX, fromY);
+            lineCtx.lineTo(toX, toY);
+            // 应用透明度：淡色引导线用固定0.3，实线用全局opacity
+            const finalOpacity = isFaint ? 0.3 : lineOpacity;
+            lineCtx.strokeStyle = `rgba(255, 68, 68, ${finalOpacity})`;
+            lineCtx.lineWidth = isFaint ? 1.5 : 2.5;
+            lineCtx.lineCap = 'round';
+            lineCtx.stroke();
+
+            // 如果是实线连线且未记录，则添加到历史连线列表
+            if (!isFaint && !isHistory && fromEl && toEl) {
+                // 避免重复添加相同的连线
+                const isDuplicate = drawnLines.some(line => 
+                    (line.from === fromEl && line.to === toEl) || 
+                    (line.from === toEl && line.to === fromEl)
+                );
+                if (!isDuplicate) {
+                    drawnLines.push({ from: fromEl, to: toEl });
+                }
+            }
+        }
+
+        // ========== 修改：清除连线（仅清空当前引导线，保留历史连线） ==========
+        function clearLine() {
+            // 只重置当前连线状态，不清除历史连线
+            currentConnectFrom = null;
+            currentConnectTo = null;
+            // 重绘所有历史连线
+            lineCtx.clearRect(0, 0, lineCanvas.width, lineCanvas.height);
+            drawnLines.forEach(line => {
+                drawLine(line.from, line.to, false, true);
+            });
+        }
+
+        /** 背景网格逻辑 **/
+        let dots = [];
+        function initBackground() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            dots = [];
+            for (let x = 0; x < bgCanvas.width + 35; x += 35) {
+                for (let y = 0; y < bgCanvas.height + 35; y += 35) {
+                    dots.push({ x, y });
+                }
+            }
+            // 新增：初始化连线Canvas
+            initLineCanvas();
+        }
+
+        function drawBackground() {
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            dots.forEach(dot => {
+                const distToMouse = Math.hypot(dot.x - mouse.x, dot.y - mouse.y);
+                let alpha = 0.15;
+                let radius = 1.2;
+                if (distToMouse < 150) {
+                    const force = (150 - distToMouse) / 150;
+                    radius = 1.2 + (force * 3);
+                    alpha = 0.45;
+                }
+                bgCtx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                bgCtx.beginPath();
+                bgCtx.arc(dot.x, dot.y, radius, 0, Math.PI * 2);
+                bgCtx.fill();
+            });
+            requestAnimationFrame(drawBackground);
+        }
+
+        /** 核心功能：逐行乱码解码（用于头像、我的爱好、音乐）**/
+        function decodeEffect(element, delay = 0) {
+            const finalValue = element.getAttribute('data-text');
+            // 兼容空文本：如果data-text为空，直接返回
+            if(!finalValue) return;
+            let iteration = 0;
+            element.innerText = "";
+            
+            setTimeout(() => {
+                // 清除可能存在的旧定时器，避免叠加
+                if(element.interval) clearInterval(element.interval);
+                element.interval = setInterval(() => {
+                    element.innerText = finalValue.split("")
+                        .map((char, index) => {
+                            if(index < iteration) return finalValue[index];
+                            return chars[Math.floor(Math.random() * chars.length)];
+                        }).join("");
+                    
+                    if(iteration >= finalValue.length) clearInterval(element.interval);
+                    iteration += 1 / 2;
+                }, 40);
+            }, delay);
+        }
+
+        /** 无乱码快速逐行显示（用于我的MBIT/Music色块）**/
+        function showTextDirectly(element, delay = 0) {
+            const finalValue = element.getAttribute('data-text');
+            // 兼容空文本
+            if(!finalValue) return;
+            // 直接设置文本，无乱码
+            setTimeout(() => {
+                element.innerText = finalValue;
+                element.style.opacity = 1; // 显示当前行
+            }, delay);
+        }
+
+        /** 交互逻辑 **/
+        const box6 = document.querySelector('.box6'); // 中心头像
+        const box1 = document.querySelector('.box1'); // 我的爱好
+        const box2 = document.querySelector('.box2'); // 我的MBIT
+        const box5 = document.querySelector('.box5'); // 我的音乐
+        const box3 = document.querySelector('.box3'); // 我的电影
+        const box4 = document.querySelector('.box4'); // 我的其他
+        const box10 = document.querySelector('.box10'); // 我的联系
+        const allBoxes = document.querySelectorAll('.box');
+
+        // ========== 新增：所有面板悬停时控制红线透明度 ==========
+        allBoxes.forEach(box => {
+            box.addEventListener('mouseenter', () => {
+                if (box.classList.contains('hidden')) return;
+                // 所有红线变淡
+                setLineOpacity(0.3);
+            });
+            
+            box.addEventListener('mouseleave', () => {
+                // 恢复红线正常透明度
+                setLineOpacity(0.8);
+            });
+        });
+
+        // ========== 新增：中心头像悬停逻辑（连接02面板） ==========
+        box6.addEventListener('mouseenter', () => {
+            allBoxes.forEach(b => {
+                if(b === box6) b.classList.add('selected');
+                else if(!b.classList.contains('hidden')) b.classList.add('unselected');
+            });
+
+            infoPanel.style.display = 'block';
+            infoLines.forEach((line, index) => {
+                decodeEffect(line, index * 300); 
+            });
+
+            // 绘制中心头像到02面板的淡红线
+            if (box2 && !box2.classList.contains('hidden')) {
+                currentConnectFrom = box6;
+                currentConnectTo = box2;
+                drawLine(box6, box2, true); // 淡色连线
+            }
+        });
+
+        box6.addEventListener('mouseleave', () => {
+            allBoxes.forEach(b => {
+                b.classList.remove('selected', 'unselected');
+            });
+            infoPanel.style.display = 'none';
+            infoLines.forEach(line => {
+                clearInterval(line.interval);
+                line.innerText = "";
+            });
+            // 移除：不再清除连线，仅保留历史连线
+            // if (currentConnectTo === box2 && !box2.matches(':hover')) {
+            //     clearLine();
+            // }
+        });
+
+        // ========== 新增：面板连线通用逻辑 ==========
+        function bindPanelLine(panelEl, nextPanelClass) {
+            // 鼠标进入当前面板
+            panelEl.addEventListener('mouseenter', () => {
+                if (panelEl.classList.contains('hidden')) return;
+                
+                // 绘制当前面板与起点的实线连线
+                if (currentConnectFrom) {
+                    drawLine(currentConnectFrom, panelEl, false); // 实线
+                }
+
+                // 设置下一个连线起点为当前面板
+                currentConnectFrom = panelEl;
+                
+                // 找到下一个面板并绘制淡红线（如果存在）
+                const nextPanel = document.querySelector(`.${nextPanelClass}`);
+                if (nextPanel && !nextPanel.classList.contains('hidden')) {
+                    currentConnectTo = nextPanel;
+                    drawLine(panelEl, nextPanel, true); // 淡色连线到下一个面板
+                }
+            });
+
+            // 鼠标离开当前面板
+            panelEl.addEventListener('mouseleave', () => {
+                // 移除：不再清除连线，保留历史连线
+                // const nextPanel = document.querySelector(`.${nextPanelClass}`);
+                // if (currentConnectTo === nextPanel && (!nextPanel || !nextPanel.matches(':hover'))) {
+                //     clearLine();
+                // }
+            });
+        }
+
+        // ========== 绑定各面板的连线逻辑 ==========
+        // 02面板 → 01面板
+        bindPanelLine(box2, 'box1');
+        // 01面板 → 03面板
+        bindPanelLine(box1, 'box3');
+        // 03面板 → 05面板
+        bindPanelLine(box3, 'box5');
+        // 05面板 → 04面板
+        bindPanelLine(box5, 'box4');
+        // 04面板 → 06面板（box10）
+        bindPanelLine(box4, 'box10');
+        // 06面板（box10）→ 无下一个面板
+        box10.addEventListener('mouseenter', () => {
+            if (box10.classList.contains('hidden')) return;
+            if (currentConnectFrom) {
+                drawLine(currentConnectFrom, box10, false); // 实线连线
+            }
+        });
+        box10.addEventListener('mouseleave', () => {
+            // 移除：最后一个面板离开也不清除连线
+            // clearLine();
+        });
+
+        // 我的MBIT交互逻辑（原有逻辑保留，新增连线触发）
+        box2.addEventListener('mouseenter', () => {
+            if(box2.classList.contains('hidden')) return;
+            allBoxes.forEach(b => {
+                if(b === box2) b.classList.add('selected');
+                else if(!b.classList.contains('hidden')) b.classList.add('unselected');
+            });
+            
+            mbitLines.forEach(line => {
+                line.innerText = "";
+                line.style.opacity = 0;
+            });
+            
+            mbitPanel.style.display = 'block';
+            mbitLines.forEach((line, index) => {
+                showTextDirectly(line, index * 50); 
+            });
+            
+            // 新增：色块自身文本解码
+            box2.querySelectorAll('.box-title, .box-desc').forEach(el => {
+                decodeEffect(el, 0);
+            });
+        });
+
+        box2.addEventListener('mouseleave', () => {
+            allBoxes.forEach(b => b.classList.remove('selected', 'unselected'));
+            mbitPanel.style.display = 'none';
+            mbitLines.forEach(line => {
+                line.innerText = "";
+                line.style.opacity = 0;
+            });
+        });
+
+        // 我的爱好交互逻辑（原有逻辑保留）
+        box1.addEventListener('mouseenter', () => {
+            if(box1.classList.contains('hidden')) return;
+            allBoxes.forEach(b => {
+                if(b === box1) b.classList.add('selected');
+                else if(!b.classList.contains('hidden')) b.classList.add('unselected');
+            });
+            
+            hobbyLines.forEach(line => {
+                line.innerText = "";
+                clearInterval(line.interval);
+            });
+            
+            hobbyPanel.style.display = 'block';
+            hobbyLines.forEach((line, index) => {
+                decodeEffect(line, index * 300); 
+            });
+            
+            box1.querySelectorAll('.box-title, .box-desc').forEach(el => {
+                decodeEffect(el, 0);
+            });
+        });
+
+        box1.addEventListener('mouseleave', () => {
+            allBoxes.forEach(b => b.classList.remove('selected', 'unselected'));
+            hobbyPanel.style.display = 'none';
+            hobbyLines.forEach(line => {
+                clearInterval(line.interval);
+                line.innerText = "";
+            });
+        });
+
+        // 我的音乐交互逻辑（原有逻辑保留）
+        box5.addEventListener('mouseenter', () => {
+            if(box5.classList.contains('hidden')) return;
+            allBoxes.forEach(b => {
+                if(b === box5) b.classList.add('selected');
+                else if(!b.classList.contains('hidden')) b.classList.add('unselected');
+            });
+            
+            musicLines.forEach(line => {
+                line.innerText = "";
+                line.style.opacity = 0;
+            });
+            
+            musicPanel.style.display = 'block';
+            musicLines.forEach((line, index) => {
+                showTextDirectly(line, index * 50); 
+            });
+            
+            // 新增：色块自身文本解码
+            box5.querySelectorAll('.box-title, .box-desc').forEach(el => {
+                decodeEffect(el, 0);
+            });
+        });
+
+        box5.addEventListener('mouseleave', () => {
+            allBoxes.forEach(b => b.classList.remove('selected', 'unselected'));
+            musicPanel.style.display = 'none';
+            musicLines.forEach(line => {
+                line.innerText = "";
+                line.style.opacity = 0;
+            });
+        });
+
+        // 我的电影交互逻辑（原有逻辑保留）
+        box3.addEventListener('mouseenter', () => {
+            if(box3.classList.contains('hidden')) return;
+            allBoxes.forEach(b => {
+                if(b === box3) b.classList.add('selected');
+                else if(!b.classList.contains('hidden')) b.classList.add('unselected');
+            });
+            
+            movieLines.forEach(line => {
+                line.innerText = "";
+                clearInterval(line.interval);
+            });
+            
+            moviePanel.style.display = 'block';
+            movieLines.forEach((line, index) => {
+                decodeEffect(line, index * 300); 
+            });
+            
+            // 新增：色块自身文本解码
+            box3.querySelectorAll('.box-title, .box-desc').forEach(el => {
+                decodeEffect(el, 0);
+            });
+        });
+
+        box3.addEventListener('mouseleave', () => {
+            allBoxes.forEach(b => b.classList.remove('selected', 'unselected'));
+            moviePanel.style.display = 'none';
+            movieLines.forEach(line => {
+                clearInterval(line.interval);
+                line.innerText = "";
+            });
+        });
+        
+        // 我的其他交互逻辑（原有逻辑保留）
+        box4.addEventListener('mouseenter', () => {
+            if(box4.classList.contains('hidden')) return;
+            allBoxes.forEach(b => {
+                if(b === box4) b.classList.add('selected');
+                else if(!b.classList.contains('hidden')) b.classList.add('unselected');
+            });
+        
+            // 新增：清空旧文本+重置opacity
+            otherLines.forEach(line => {
+                line.innerText = "";
+                line.style.opacity = 0;
+                clearInterval(line.interval);
+            });
+            
+            otherPanel.style.display = 'block';
+            otherLines.forEach((line, index) => {
+                decodeEffect(line, index * 200);
+                // 解码后显示文本行
+                setTimeout(() => {
+                    line.style.opacity = 1;
+                }, index * 200 + 500);
+            });
+            
+            // 新增：色块自身文本解码
+            box4.querySelectorAll('.box-title, .box-desc').forEach(el => {
+                decodeEffect(el, 0);
+            });
+        });
+
+        box4.addEventListener('mouseleave', () => {
+            allBoxes.forEach(b => b.classList.remove('selected', 'unselected'));
+            otherPanel.style.display = 'none';
+            otherLines.forEach(line => {
+                clearInterval(line.interval);
+                line.innerText = "";
+                line.style.opacity = 0;
+            });
+        });
+
+        // 联系方式 (Box 10) 交互逻辑（原有逻辑保留）
+        box10.addEventListener('mouseenter', () => {
+            if(box10.classList.contains('hidden')) return;
+            allBoxes.forEach(b => {
+                if(b === box10) b.classList.add('selected');
+                else if(!b.classList.contains('hidden')) b.classList.add('unselected');
+            });
+        
+            // 新增：清空旧文本+重置opacity
+            callLines.forEach(line => {
+                line.innerText = "";
+                line.style.opacity = 0;
+                clearInterval(line.interval);
+            });
+            
+            callPanel.style.display = 'block';
+            callLines.forEach((line, index) => {
+                decodeEffect(line, index * 200);
+                // 解码后显示文本行
+                setTimeout(() => {
+                    line.style.opacity = 1;
+                }, index * 200 + 500);
+            });
+            
+            // 新增：色块自身文本解码
+            box10.querySelectorAll('.box-title, .box-desc').forEach(el => {
+                decodeEffect(el, 0);
+            });
+        });
+
+        box10.addEventListener('mouseleave', () => {
+            allBoxes.forEach(b => b.classList.remove('selected', 'unselected'));
+            callPanel.style.display = 'none';
+            callLines.forEach(line => {
+                clearInterval(line.interval);
+                line.innerText = "";
+                line.style.opacity = 0;
+            });
+        });
+
+        // 统一的基础悬停逻辑（仅绑定未自定义的色块，避免重复）
+        allBoxes.forEach(box => {
+            const specialBoxes = [box6, box1, box2, box5, box3, box4, box10];
+            if(specialBoxes.includes(box)) return; 
+
+            box.addEventListener('mouseenter', () => {
+                if(box.classList.contains('hidden')) return;
+                allBoxes.forEach(b => {
+                    if(b === box) b.classList.add('selected');
+                    else if(!b.classList.contains('hidden')) b.classList.add('unselected');
+                });
+                box.querySelectorAll('.box-title, .box-desc').forEach(el => decodeEffect(el));
+            });
+            
+            box.addEventListener('mouseleave', () => {
+                allBoxes.forEach(b => b.classList.remove('selected', 'unselected'));
+            });
+        });
+
+        // 鼠标移动显示隐藏色块
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX; mouse.y = e.clientY;
+            const cRect = document.querySelector('.container').getBoundingClientRect();
+            allBoxes.forEach(box => {
+                if (!box.classList.contains('hidden')) return;
+                const r = box.getBoundingClientRect();
+                const bCX = r.left + r.width/2 - cRect.left;
+                const bCY = r.top + r.height/2 - cRect.top;
+                if (Math.hypot(e.clientX - cRect.left - bCX, e.clientY - cRect.top - bCY) < 150) {
+                    box.classList.remove('hidden');
+                    box.classList.add('visible');
+                }
+            });
+        });
+
+        // 初始化
+        window.addEventListener('load', () => { 
+            initBackground(); 
+            drawBackground(); 
+        });
+        window.addEventListener('resize', () => {
+            initBackground();
+            // 窗口调整时重新绘制所有连线（历史+当前）
+            lineCtx.clearRect(0, 0, lineCanvas.width, lineCanvas.height);
+            drawnLines.forEach(line => {
+                drawLine(line.from, line.to, false, true);
+            });
+            if (currentConnectFrom && currentConnectTo) {
+                drawLine(currentConnectFrom, currentConnectTo, currentConnectFrom === box6);
+            }
+        });
+    </script>
+</body>
+</html>
